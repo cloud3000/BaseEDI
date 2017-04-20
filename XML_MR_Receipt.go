@@ -17,13 +17,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloud3000/serveredi"
+	"github.com/cloud3000/serveredi" // EDI Socket server lib
 
 	"github.com/blackjack/syslog"
 )
 
-const emailfrom = "customer@cloud3000.com"
-const emailto = "edimgr@cloud3000.com"
+const (
+	emailfrom = "customer@cloud3000.com"
+	emailto   = "edimgr@cloud3000.com"
+	smtpuser  = "michael@cloud3000.com"
+	smtppass  = "fghrty456"
+	smtpserv  = "cloud3000.com"
+	smtpport  = ":587"
+)
 
 type credent struct {
 	domain   string
@@ -95,9 +101,7 @@ type respline struct {
 
 func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) int {
 	// Set up authentication information.
-	auth := smtp.PlainAuth("", "michael@cloud3000.com",
-		"***passwd*****",
-		"secure.emailsrvr.com")
+	auth := smtp.PlainAuth("", smtpuser, smtppass, smtpserv)
 
 	// Connect to the server, authenticate, set the sender and recipient,
 	// and send the email all in one step.
@@ -107,7 +111,7 @@ func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) in
 		"Subject: " + mailsub + "\r\n" +
 		"\r\n" +
 		mailmsg + "\r\n")
-	err := smtp.SendMail("secure.emailsrvr.com:587", auth, "michael@cloud3000.com", to, msg)
+	err := smtp.SendMail(smtpserv+smtpport, auth, smtpuser, to, msg)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
