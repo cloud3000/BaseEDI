@@ -39,12 +39,18 @@ var (
 
 var excludeRe *regexp.Regexp
 
-const rebuildDelay = 200 * time.Millisecond
-const customeremail = "customer@cloud3000.com"
-const ediadminemail = "edimgr@cloud3000.com"
+const (
+	rebuildDelay  = 200 * time.Millisecond
+	customeremail = "customer@cloud3000.com"
+	ediadminemail = "edimgr@cloud3000.com"
 
-// The name of the syscall.SysProcAttr.Setpgid field.
-const setpgidName = "Setpgid"
+	// The name of the syscall.SysProcAttr.Setpgid field.
+	setpgidName = "Setpgid"
+	smtpuser    = "michael@cloud3000.com"
+	smtppass    = "fghrty456"
+	smtpserv    = "cloud3000.com"
+	smtpport    = ":587"
+)
 
 var (
 	hasSetPGID bool
@@ -65,9 +71,7 @@ func (w writerUI) rerun() <-chan struct{} { return nil }
 
 func _ediEMAIL(mailfrom string, mailto string, mailsub string, mailmsg string) int {
 	// Set up authentication information.
-	auth := smtp.PlainAuth("", "michael@cloud3000.com",
-		"***passwd***",
-		"smtpsrvr.com")
+	auth := smtp.PlainAuth("", smtpuser, smtppass, smtpserv)
 
 	// Connect to the server, authenticate, set the sender and recipient,
 	// and send the email all in one step.
@@ -77,7 +81,7 @@ func _ediEMAIL(mailfrom string, mailto string, mailsub string, mailmsg string) i
 		"Subject: " + mailsub + "\r\n" +
 		"\r\n" +
 		mailmsg + "\r\n")
-	err := smtp.SendMail("smtpsrvr.com:587", auth, "michael@cloud3000.com", to, msg)
+	err := smtp.SendMail(smtpserv+smtpport, auth, smtpuser, to, msg)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}

@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/serveredi"
+	"github.com/cloud3000/serveredi"
 
 	"github.com/blackjack/syslog"
 )
@@ -93,7 +93,7 @@ type respline struct {
 	UIDType                  string
 }
 
-func cepEmail(mailfrom string, mailto string, mailsub string, mailmsg string) int {
+func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) int {
 	// Set up authentication information.
 	auth := smtp.PlainAuth("", "michael@cloud3000.com",
 		"***passwd*****",
@@ -393,7 +393,7 @@ func xmlResponce(resp *MRresponse) {
 			resp.mrpackage.pkgid,
 			fmt.Sprintf("xml.MarshalIndent FAILED:%s ", err2.Error()),
 			time.Now().Format("2006-01-02 15:04:05"))
-		cepEmail(efrom, eto, esub, emsg)
+		ediEmail(efrom, eto, esub, emsg)
 		os.Exit(1)
 	} else {
 		xmlheader := fmt.Sprintf("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>\n")
@@ -415,7 +415,7 @@ func xmlResponce(resp *MRresponse) {
 				resp.mrpackage.pkgid,
 				fmt.Sprintf("ioutil.WriteFile FAILED: %s ", err2.Error()),
 				time.Now().Format("2006-01-02 15:04:05"))
-			cepEmail(efrom, eto, esub, emsg)
+			ediEmail(efrom, eto, esub, emsg)
 		} else {
 			efrom := emailfrom
 			eto := emailto
@@ -428,7 +428,7 @@ func xmlResponce(resp *MRresponse) {
 				path.Base(newfn),
 				resp.mrpackage.pkgid,
 				time.Now().Format("2006-01-02 15:04:05"))
-			cepEmail(efrom, eto, esub, emsg)
+			ediEmail(efrom, eto, esub, emsg)
 
 		}
 	}
@@ -458,7 +458,7 @@ func main() {
 			status.Number,
 			status.Message,
 			time.Now().Format("2006-01-02 15:04:05"))
-		cepEmail(efrom, eto, esub, emsg)
+		ediEmail(efrom, eto, esub, emsg)
 		os.Exit(1)
 	}
 
@@ -503,7 +503,7 @@ func main() {
 				status.Number,
 				status.Message,
 				time.Now().Format("2006-01-02 15:04:05"))
-			cepEmail(efrom, eto, esub, emsg)
+			ediEmail(efrom, eto, esub, emsg)
 			os.Exit(1)
 		}
 		// MMTS will tell us when it's done sending data

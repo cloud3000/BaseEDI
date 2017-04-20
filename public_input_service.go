@@ -1,4 +1,5 @@
-/* File: public_input_service
+/*
+File: public_input_service
 
 Watches 24/7 for inbound files in the client Default directory
 and instantly starts the XML_PO_import on the clients behalf.
@@ -40,10 +41,18 @@ var (
 
 var excludeRe *regexp.Regexp
 
-const rebuildDelay = 200 * time.Millisecond
+const (
+	rebuildDelay = 200 * time.Millisecond
 
-// The name of the syscall.SysProcAttr.Setpgid field.
-const setpgidName = "Setpgid"
+	// The name of the syscall.SysProcAttr.Setpgid field.
+	setpgidName = "Setpgid"
+	custemail   = "cust@theirdomain.com"
+	mgremail    = "edimgr@yourdomain.com"
+	smtpuser    = "michael@cloud3000.com"
+	smtppass    = "fghrty456"
+	smtpserv    = "cloud3000.com"
+	smtpport    = ":587"
+)
 
 var (
 	hasSetPGID bool
@@ -64,9 +73,7 @@ func (w writerUI) rerun() <-chan struct{} { return nil }
 
 func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) int {
 	// Set up authentication information.
-	auth := smtp.PlainAuth("", "michael@cloud3000.com",
-		"****passwd********",
-		"smtpsrvr.com")
+	auth := smtp.PlainAuth("", smtpuser, smtppass, smtpserv)
 
 	// Connect to the server, authenticate, set the sender and recipient,
 	// and send the email all in one step.
@@ -76,7 +83,7 @@ func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) in
 		"Subject: " + mailsub + "\r\n" +
 		"\r\n" +
 		mailmsg + "\r\n")
-	err := smtp.SendMail("smtpsrvr.com:587", auth, "michael@cloud3000.com", to, msg)
+	err := smtp.SendMail(smtpserv+smtpport, auth, smtpuser, to, msg)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
@@ -108,7 +115,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	ui := ui(writerUI{os.Stdout})
+	myui := ui(writerUI{os.Stdout})
 
 	timer := time.NewTimer(0)
 	changes := startWatching(*watchPath)
@@ -120,18 +127,18 @@ func main() {
 		case lastChange = <-changes:
 			timer.Reset(rebuildDelay)
 
-		case <-ui.rerun():
-			lastRun = run(ui)
+		case <-myui.rerun():
+			lastRun = run(myui)
 
 		case <-timer.C:
 			if lastRun.Before(lastChange) {
-				lastRun = run(ui)
+				lastRun = run(myui)
 			}
 		}
 	}
 }
 
-func run(ui ui) time.Time {
+func run(myui ui) time.Time {
 	ui.redisplay(func(out io.Writer) {
 		cmd := exec.Command(flag.Arg(0), flag.Args()[1:]...)
 		cmd.Stdout = out
@@ -274,8 +281,8 @@ func sendChanges(w *fsnotify.Watcher, changes chan<- time.Time) {
 				fmt.Printf("\ndir=%v \nfile=%v \nextension=%v\n", mydir, myfile, myext)
 				syslog.Syslogf(syslog.LOG_INFO, "\ndir=%v \nfile=%v \nextension=%v\n", mydir, myfile, myext)
 				if myext == ".xml" {
-					efrom := "customer@cloud3000.com"
-					eto := "edimgr@cloud3000.com"
+					efrom := custemail
+					eto := mgremail
 					esub := "[EDI] File Received: " + myfile
 					emsg := fmt.Sprintf(
 						"      Filename: %s\n"+
@@ -292,8 +299,8 @@ func sendChanges(w *fsnotify.Watcher, changes chan<- time.Time) {
 
 					if err := c1.Start(); err != nil {
 						io.WriteString(os.Stdout, "fatal: "+err.Error()+"\n")
-						efrom := "customer@cloud3000.com"
-						eto := "edimgr@cloud3000.com"
+						efrom := custemail
+						eto := mgremail
 						esub := "[EDI] FATAL ERROR"
 						emsg := fmt.Sprintf(
 							"   Filename: %s\n"+
@@ -310,8 +317,8 @@ func sendChanges(w *fsnotify.Watcher, changes chan<- time.Time) {
 					}
 					if err := c1.Wait(); err != nil {
 						io.WriteString(os.Stdout, "fatal: "+err.Error()+"\n")
-						efrom := "customer@cloud3000.com"
-						eto := "edimgr@cloud3000.com"
+						efrom := custemail
+						eto := mgremail
 						esub := "[EDI] XML IMPORT ERROR"
 						emsg := fmt.Sprintf(
 							"   Filename: %s\n"+
@@ -330,8 +337,8 @@ func sendChanges(w *fsnotify.Watcher, changes chan<- time.Time) {
 					os.Remove("./processed/" + myfile)
 					os.Rename(ev.Name, "./processed/"+myfile)
 				} else {
-					efrom := "customer@cloud3000.com"
-					eto := "edimgr@cloud3000.com"
+					efrom := custemail
+					eto := mgremail
 					esub := "[EDI] File NOT PROCESSED: " + myfile
 					emsg := fmt.Sprintf(
 						"       Filename: %s \n "+

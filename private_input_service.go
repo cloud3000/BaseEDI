@@ -19,18 +19,22 @@ import (
 )
 
 const (
-	SERVER_HOST = "45.55.216.201" // This is localhost public IP.
-	SERVER_TYPE = "tcp"
-	MR_PORT     = "30771" // Incomming requests for Materail Receipts
-	CMD_PORT    = "30772"
+	serverhost = "nnn.nnn.nnn.nnn" // This is localhost public IP.
+	servertype = "tcp"
+	mrport     = "30771"                // Incomming requests for Materail Receipts
+	mrprocess  = "./bin/XML_MR_Receipt" // MR request handler.
+	cmdport    = "30772"
+	custemail  = "cust@theirdomain.com"
+	mgremail   = "edimgr@yourdomain.com"
+	smtpuser   = "michael@cloud3000.com"
+	smtppass   = "fghrty456"
+	smtpserv   = "cloud3000.com"
+	smtpport   = ":587"
 )
 
 func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) int {
 	// Set up authentication information.
-	auth := smtp.PlainAuth("", "michael@cloud3000.com",
-		"********",
-		"smtpsrvr.com")
-
+	auth := smtp.PlainAuth("", smtpuser, smtppass, smtpserv)
 	// Connect to the server, authenticate, set the sender and recipient,
 	// and send the email all in one step.
 	to := []string{mailto}
@@ -39,7 +43,7 @@ func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) in
 		"Subject: " + mailsub + "\r\n" +
 		"\r\n" +
 		mailmsg + "\r\n")
-	err := smtp.SendMail("smtpsrvr.com:587", auth, "michael@cloud3000.com", to, msg)
+	err := smtp.SendMail(smtpserv+smtpport, auth, smtpuser, to, msg)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
@@ -84,7 +88,7 @@ func runMR(conn net.Conn) { // This a go routine thread ea. 'go runMR'
 		conn.Close()
 	})
 
-	init := "./bin/XML_MR_Receipt" // Child process
+	init := mrprocess
 	// the FD on the cmdline, does not work.
 	initArgs := []string{strconv.Itoa(int(d))}
 	// For some reason the child always gets the socket in FD 3
@@ -97,8 +101,8 @@ func runMR(conn net.Conn) { // This a go routine thread ea. 'go runMR'
 
 	if err := cmd.Start(); err != nil {
 		fmt.Printf("Start %s error: %v\n", init, err)
-		efrom := "customer@cloud3000.com"
-		eto := "edimgr@cloud3000.com"
+		efrom := custemail
+		eto := mgremail
 		esub := "[EDI] private_input ERROR, starting child process."
 		emsg := fmt.Sprintf(
 			"Child Process: %s\n"+
@@ -113,8 +117,8 @@ func runMR(conn net.Conn) { // This a go routine thread ea. 'go runMR'
 
 	if err := cmd.Wait(); err != nil {
 		fmt.Printf("Wait %s error: %v\n", init, err)
-		efrom := "customer@cloud3000.com"
-		eto := "edimgr@cloud3000.com"
+		efrom := custemail
+		eto := mgremail
 		esub := "[EDI] private_input ERROR, death of child process."
 		emsg := fmt.Sprintf(
 			"Child Process: %s\n"+
@@ -137,18 +141,18 @@ func handleRequest(conn net.Conn) {
 }
 
 func main() {
-	go listenMR(SERVER_TYPE, SERVER_HOST, MR_PORT)
+	go listenMR(servertype, serverhost, mrport)
 	// Listen for incoming connections.
-	l, err := net.Listen(SERVER_TYPE, SERVER_HOST+":"+CMD_PORT)
+	l, err := net.Listen(servertype, serverhost+":"+cmdport)
 	if err != nil {
-		fmt.Println("net.Listen Port %s Error:", err.Error())
+		fmt.Printf("net.Listen Port Error: %s \n", err.Error())
 		os.Exit(1)
 	}
 	// Close the listener when the application closes.
 	defer l.Close()
 
-	fmt.Println("Listening on " + SERVER_HOST + ":" + CMD_PORT)
-	syslog.Syslogf(syslog.LOG_INFO, "Listening on: %s:%s ", SERVER_HOST, CMD_PORT)
+	fmt.Println("Listening on " + serverhost + ":" + cmdport)
+	syslog.Syslogf(syslog.LOG_INFO, "Listening on: %s:%s ", serverhost, cmdport)
 	for {
 		// Listen for an incoming connection.
 		conn, err := l.Accept()

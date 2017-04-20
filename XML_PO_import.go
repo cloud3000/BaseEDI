@@ -28,7 +28,7 @@ import (
 
 	"github.com/blackjack/syslog"
 
-	"gopkg.in/ioedi"
+	"github.com/cloud3000/ioedi" // EDI Socket client lib
 )
 
 // POresponse Data for xmlResponse
