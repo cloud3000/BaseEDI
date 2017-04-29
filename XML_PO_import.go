@@ -27,8 +27,7 @@ import (
 	"time"
 
 	"github.com/blackjack/syslog"
-
-	"github.com/cloud3000/ioedi" // EDI Socket client lib
+	// EDI Socket client lib
 )
 
 // POresponse Data for xmlResponse
@@ -45,14 +44,16 @@ type POresponse struct {
 	}
 }
 
-const outpath = "/home/edimgr/acmeship/out/"
-const emailfrom = "acmeship@cloud3000.com"
-const emailto = "edimgr@cloud3000.com"
-const custid = "ACMESHIP"
-const smtpuser = "michael@cloud3000.com"
-const smtppass = "xcvsdfwer234"
-const smtpserv = "smtpserv.com"
-const smtpport = ":587"
+const (
+	outpath   = "/home/edimgr/acmeship/out/"
+	emailfrom = "acmeship@cloud3000.com"
+	emailto   = "edimgr@cloud3000.com"
+	custid    = "ACMESHIP"
+	smtpuser  = "michael@cloud3000.com"
+	smtppass  = "xcvsdfwer234"
+	smtpserv  = "smtpserv.com"
+	smtpport  = ":587"
+)
 
 func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) int {
 	// Set up authentication information.
@@ -280,7 +281,7 @@ func checkErr(err error) {
 	}
 }
 
-func dataPrint(c *net.TCPConn, format string, data string) int {
+func dataSend(c *net.TCPConn, format string, data string) int {
 	str1 := fmt.Sprintf(format, data)
 	// fmt.Printf(str1)
 	str2 := strings.Replace(str1, "\n", " ", -1)
@@ -311,7 +312,7 @@ func dataPrint(c *net.TCPConn, format string, data string) int {
 	return 0
 }
 
-func outputData(q Query) {
+func data2Host(q Query) {
 	syslog.Syslogf(syslog.LOG_INFO, "Connecting to: %s", "192.168.1.240:30770")
 	conn, edierr := ioedi.Connect("192.168.1.240:30770")
 	if edierr.Number != 0 {
@@ -340,71 +341,71 @@ func outputData(q Query) {
 	}
 
 	//fmt.Printf("\n ****** Purchase Order ****** \n")
-	dataPrint(conn, "Msg                \t%s\n", q.File.Msg)
-	dataPrint(conn, "Datetime           \t%s\n", q.File.Datetime)
-	dataPrint(conn, "Fileversion        \t%s\n", q.File.Fileversion)
-	dataPrint(conn, "TotalLineItems     \t%s\n", q.OrderRequestSummary.TotalLineItems)
-	dataPrint(conn, "TotalAmount        \t%s\n", q.OrderRequestSummary.TotalAmount)
-	dataPrint(conn, "TotalQuantity      \t%s\n", q.OrderRequestSummary.TotalQuantity)
+	dataSend(conn, "Msg                \t%s\n", q.File.Msg)
+	dataSend(conn, "Datetime           \t%s\n", q.File.Datetime)
+	dataSend(conn, "Fileversion        \t%s\n", q.File.Fileversion)
+	dataSend(conn, "TotalLineItems     \t%s\n", q.OrderRequestSummary.TotalLineItems)
+	dataSend(conn, "TotalAmount        \t%s\n", q.OrderRequestSummary.TotalAmount)
+	dataSend(conn, "TotalQuantity      \t%s\n", q.OrderRequestSummary.TotalQuantity)
 	//fmt.Printf("\n ******   Credentials  ****** \n")
-	dataPrint(conn, "from.Id            \t%s\n", q.File.Credfrom.ID)
-	dataPrint(conn, "from.Dm            \t%s\n", q.File.Credfrom.Dm)
-	dataPrint(conn, "to.Id              \t%s\n", q.File.Credto.ID)
-	dataPrint(conn, "to.Dm              \t%s\n", q.File.Credto.Dm)
+	dataSend(conn, "from.Id            \t%s\n", q.File.Credfrom.ID)
+	dataSend(conn, "from.Dm            \t%s\n", q.File.Credfrom.Dm)
+	dataSend(conn, "to.Id              \t%s\n", q.File.Credto.ID)
+	dataSend(conn, "to.Dm              \t%s\n", q.File.Credto.Dm)
 	//fmt.Printf("\n ******      Order     ****** \n")
 	syslog.Syslogf(syslog.LOG_INFO, "Order number %s", q.Fileord.Ordno)
-	dataPrint(conn, "Ordno              \t%s\n", q.File.Fileord.Ordno)
-	dataPrint(conn, "Prjord             \t%s\n", q.File.Fileord.Prjord)
-	dataPrint(conn, "Action             \t%s\n", q.File.Fileord.Action)
-	dataPrint(conn, "ContractNumber     \t%s\n", q.File.Fileord.ContractNumber)
-	dataPrint(conn, "IncoTerms          \t%s\n", q.File.Fileord.IncoTerms)
-	dataPrint(conn, "IncoLocation       \t%s\n", q.File.Fileord.IncoLocation)
-	dataPrint(conn, "PODescription      \t%s\n", q.File.Fileord.PODescription)
-	dataPrint(conn, "Comments           \t%s\n", q.File.Fileord.Comments)
+	dataSend(conn, "Ordno              \t%s\n", q.File.Fileord.Ordno)
+	dataSend(conn, "Prjord             \t%s\n", q.File.Fileord.Prjord)
+	dataSend(conn, "Action             \t%s\n", q.File.Fileord.Action)
+	dataSend(conn, "ContractNumber     \t%s\n", q.File.Fileord.ContractNumber)
+	dataSend(conn, "IncoTerms          \t%s\n", q.File.Fileord.IncoTerms)
+	dataSend(conn, "IncoLocation       \t%s\n", q.File.Fileord.IncoLocation)
+	dataSend(conn, "PODescription      \t%s\n", q.File.Fileord.PODescription)
+	dataSend(conn, "Comments           \t%s\n", q.File.Fileord.Comments)
 	//fmt.Printf("\n ******      Vendor    ****** \n")
-	dataPrint(conn, "VendorName         \t%s\n", q.File.Fileord.VendorName)
-	dataPrint(conn, "VendorContactName  \t%s\n", q.File.Fileord.VendorContactName)
-	dataPrint(conn, "VendorAddress1     \t%s\n", q.File.Fileord.VendorAddress1)
-	dataPrint(conn, "VendorCity         \t%s\n", q.File.Fileord.VendorCity)
-	dataPrint(conn, "VendorState        \t%s\n", q.File.Fileord.VendorState)
-	dataPrint(conn, "VendorPostalCode   \t%s\n", q.File.Fileord.VendorPostalCode)
+	dataSend(conn, "VendorName         \t%s\n", q.File.Fileord.VendorName)
+	dataSend(conn, "VendorContactName  \t%s\n", q.File.Fileord.VendorContactName)
+	dataSend(conn, "VendorAddress1     \t%s\n", q.File.Fileord.VendorAddress1)
+	dataSend(conn, "VendorCity         \t%s\n", q.File.Fileord.VendorCity)
+	dataSend(conn, "VendorState        \t%s\n", q.File.Fileord.VendorState)
+	dataSend(conn, "VendorPostalCode   \t%s\n", q.File.Fileord.VendorPostalCode)
 	//fmt.Printf("\n ******   Line Items  ****** \n")
 	for _, item := range q.File.Fileord.Lineitem {
 		//syslog.Syslogf(syslog.LOG_INFO, "LineNumber %s", item.LineNumber)
-		dataPrint(conn, "LineNumber               \t%s\n", item.LineNumber)
-		dataPrint(conn, "Qty                      \t%s\n", item.Qty)
-		dataPrint(conn, "RevisionNumber           \t%s\n", item.RevisionNumber)
-		dataPrint(conn, "IssueDate                \t%s\n", item.IssueDate)
-		dataPrint(conn, "MaterialItemCode         \t%s\n", item.MaterialItemCode)
-		dataPrint(conn, "MaterialItemSize         \t%s\n", item.MaterialItemSize)
-		dataPrint(conn, "MaterialShortDescription \t%s\n", item.MaterialShortDescription)
-		dataPrint(conn, "UOM                      \t%s\n", item.UM.UOM)
-		dataPrint(conn, "UOMDescr                 \t%s\n", item.UM.UOMDescr)
-		dataPrint(conn, "ProjectUnitPrice         \t%s\n", item.ProjectUnitPrice)
-		dataPrint(conn, "ProjectCurrency          \t%s\n", item.ProjectCurrency)
-		dataPrint(conn, "POUnitPrice              \t%s\n", item.POUnitPrice)
-		dataPrint(conn, "POCurrency               \t%s\n", item.POCurrency)
-		dataPrint(conn, "MaterialType             \t%s\n", item.MaterialType)
-		dataPrint(conn, "IsAsset                  \t%s\n", item.IsAsset)
-		dataPrint(conn, "IsUID                    \t%s\n", item.IsUID)
-		dataPrint(conn, "MaterialLongDescription  \t%s\n", item.MaterialLongDescription)
-		dataPrint(conn, "Destination              \t%s\n", item.Destination)
-		dataPrint(conn, "DeliveryDate             \t%s\n", item.DeliveryDate)
-		dataPrint(conn, "Comments                 \t%s\n", item.Comments)
-		dataPrint(conn, "HarmonizedTariffCode     \t%s\n", item.HarmonizedTariffCode)
-		dataPrint(conn, "HarmonizedTariffCodeDesc \t%s\n", item.HarmonizedTariffCodeDesc)
-		dataPrint(conn, "Subline                  \t%s\n\n\n", item.Subline)
+		dataSend(conn, "LineNumber               \t%s\n", item.LineNumber)
+		dataSend(conn, "Qty                      \t%s\n", item.Qty)
+		dataSend(conn, "RevisionNumber           \t%s\n", item.RevisionNumber)
+		dataSend(conn, "IssueDate                \t%s\n", item.IssueDate)
+		dataSend(conn, "MaterialItemCode         \t%s\n", item.MaterialItemCode)
+		dataSend(conn, "MaterialItemSize         \t%s\n", item.MaterialItemSize)
+		dataSend(conn, "MaterialShortDescription \t%s\n", item.MaterialShortDescription)
+		dataSend(conn, "UOM                      \t%s\n", item.UM.UOM)
+		dataSend(conn, "UOMDescr                 \t%s\n", item.UM.UOMDescr)
+		dataSend(conn, "ProjectUnitPrice         \t%s\n", item.ProjectUnitPrice)
+		dataSend(conn, "ProjectCurrency          \t%s\n", item.ProjectCurrency)
+		dataSend(conn, "POUnitPrice              \t%s\n", item.POUnitPrice)
+		dataSend(conn, "POCurrency               \t%s\n", item.POCurrency)
+		dataSend(conn, "MaterialType             \t%s\n", item.MaterialType)
+		dataSend(conn, "IsAsset                  \t%s\n", item.IsAsset)
+		dataSend(conn, "IsUID                    \t%s\n", item.IsUID)
+		dataSend(conn, "MaterialLongDescription  \t%s\n", item.MaterialLongDescription)
+		dataSend(conn, "Destination              \t%s\n", item.Destination)
+		dataSend(conn, "DeliveryDate             \t%s\n", item.DeliveryDate)
+		dataSend(conn, "Comments                 \t%s\n", item.Comments)
+		dataSend(conn, "HarmonizedTariffCode     \t%s\n", item.HarmonizedTariffCode)
+		dataSend(conn, "HarmonizedTariffCodeDesc \t%s\n", item.HarmonizedTariffCodeDesc)
+		dataSend(conn, "Subline                  \t%s\n\n\n", item.Subline)
 		// Send Asset placeholders for line item.
 		if item.IsAsset == "Yes" {
-			dataPrint(conn, "assetNo \t%s\n", " ")
-			dataPrint(conn, "assetUID \t%s\n", " ")
-			dataPrint(conn, "SerialNumber \t%s\n", " ")
-			dataPrint(conn, "Manufacture \t%s\n", " ")
-			dataPrint(conn, "ModelNo \t%s\n", " ")
-			dataPrint(conn, "Sensitive \t%s\n", " ")
-			dataPrint(conn, "ClientReportTable \t%s\n", " ")
-			dataPrint(conn, "UIDSerialNumber \t%s\n", " ")
-			dataPrint(conn, "UIDType \t%s\n", " ")
+			dataSend(conn, "assetNo \t%s\n", " ")
+			dataSend(conn, "assetUID \t%s\n", " ")
+			dataSend(conn, "SerialNumber \t%s\n", " ")
+			dataSend(conn, "Manufacture \t%s\n", " ")
+			dataSend(conn, "ModelNo \t%s\n", " ")
+			dataSend(conn, "Sensitive \t%s\n", " ")
+			dataSend(conn, "ClientReportTable \t%s\n", " ")
+			dataSend(conn, "UIDSerialNumber \t%s\n", " ")
+			dataSend(conn, "UIDType \t%s\n", " ")
 			efrom := emailfrom
 			eto := emailto
 			esub := "[EDI] Incoming Asset: " + q.Fileord.Ordno
@@ -496,7 +497,9 @@ func main() {
 			xmlResponse(resp, "ERROR", xmlerr.Error())
 			os.Exit(1)
 		}
-		outputData(q)
+		// Now the xmlfile has been Unmarshaled
+		// Push all the xml data to the local application host.
+		data2Host(q)
 		xmlFile.Close()
 	}
 }
