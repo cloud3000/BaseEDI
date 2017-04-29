@@ -28,6 +28,7 @@ const (
 	smtppass  = "fghrty456"
 	smtpserv  = "cloud3000.com"
 	smtpport  = ":587"
+	outputdir = "/home/edimgr/custid/out/"
 )
 
 type credent struct {
@@ -371,7 +372,7 @@ func xmlResponce(resp *MRresponse) {
 	rdata.Summary.TotalPackages = resp.Summary.TotalPackages
 	//
 	// Set Filename with full path
-	cpath := "/home/edimgr/cepdamco128/out/"
+	cpath := outputdir
 	newfn := fmt.Sprintf("%scustomer_MR_%s_%s_RECEIPTS_%s.xml",
 		cpath,
 		resp.mrpackage.contractnumber,
