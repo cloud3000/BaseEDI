@@ -1,6 +1,12 @@
 /*
-Started as child process by ediserv
-As a service, receives data from MMTS to create the XML MR Receipt file.
+
+Started as child process by private_input_service
+As a service, receives data from client socket to
+create the XML MR Receipt file.
+
+Events that occur in this process (successes/failures)
+are emailed to the email address stored in constant emailto
+
 */
 package main
 

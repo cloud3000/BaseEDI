@@ -3,6 +3,8 @@ package main
 /* File: private_input_service.go
 
 Listens on multiple ports for request from the private network.
+You could also run this facing the public Internet, but
+some addtional security may be needed.
 
 */
 
@@ -27,7 +29,7 @@ const (
 	custemail  = "cust@theirdomain.com"
 	mgremail   = "edimgr@yourdomain.com"
 	smtpuser   = "michael@cloud3000.com"
-	smtppass   = "fghrty456"
+	smtppass   = "**********"
 	smtpserv   = "cloud3000.com"
 	smtpport   = ":587"
 )

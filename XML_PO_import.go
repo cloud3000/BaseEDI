@@ -1,6 +1,6 @@
 /*
 File name: XML_PO_import.go
-Is a Child process started by public_input_servic:
+Is a Child process started by public_input_service:
 
  1. Input from a XML file, named by parent on the command-line (Args).
 
