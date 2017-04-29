@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/blackjack/syslog"
+	"github.com/cloud3000/ediclientsocks" // clientedi Client socket lib
 	// EDI Socket client lib
 )
 
@@ -57,7 +58,7 @@ const (
 
 func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) int {
 	// Set up authentication information.
-	auth := smtp.PlainAuth("", smptuser, smtppass, smtpserv)
+	auth := smtp.PlainAuth("", smtpuser, smtppass, smtpserv)
 
 	// Connect to the server, authenticate, set the sender and recipient,
 	// and send the email all in one step.
@@ -67,7 +68,7 @@ func ediEmail(mailfrom string, mailto string, mailsub string, mailmsg string) in
 		"Subject: " + mailsub + "\r\n" +
 		"\r\n" +
 		mailmsg + "\r\n")
-	err := smtp.SendMail(smtpserv+smtpport, auth, smptuser, to, msg)
+	err := smtp.SendMail(smtpserv+smtpport, auth, smtpuser, to, msg)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
@@ -289,7 +290,7 @@ func dataSend(c *net.TCPConn, format string, data string) int {
 	str4 := strings.TrimSpace(str3[0])
 	str5 := strings.TrimSpace(str3[1])
 	str6 := str4 + "=" + str5
-	status := ioedi.Send(c, str6)
+	status := clientedi.Send(c, str6)
 	if status.Number != 0 {
 		efrom := emailfrom
 		eto := emailto
@@ -314,7 +315,7 @@ func dataSend(c *net.TCPConn, format string, data string) int {
 
 func data2Host(q Query) {
 	syslog.Syslogf(syslog.LOG_INFO, "Connecting to: %s", "192.168.1.240:30770")
-	conn, edierr := ioedi.Connect("192.168.1.240:30770")
+	conn, edierr := clientedi.Connect("192.168.1.240:30770")
 	if edierr.Number != 0 {
 		errstr := fmt.Sprintf("%s Error=%d", edierr.Message, edierr.Number)
 		fmt.Printf("%s ", errstr)
@@ -426,7 +427,7 @@ func data2Host(q Query) {
 			ediEmail(efrom, eto, esub, emsg)
 		}
 	}
-	ioedi.Send(conn, "EDIEOF")
+	clientedi.Send(conn, "EDIEOF")
 	t := time.Now()
 	var resp POresponse
 	resp.MessageID = q.File.Msg
@@ -435,14 +436,14 @@ func data2Host(q Query) {
 	resp.Order.OrderNumber = q.File.Fileord.Ordno
 	resp.Order.ProjectNumber = q.File.Fileord.ProjectNumber
 	resp.Order.ContractNumber = q.File.Fileord.ContractNumber
-	myaction, actstat := ioedi.Recv(conn)
-	myresponse, respstat := ioedi.Recv(conn)
+	myaction, actstat := clientedi.Recv(conn)
+	myresponse, respstat := clientedi.Recv(conn)
 	fmt.Printf("action len=%d\n", actstat.Len)
 	fmt.Printf("ressp len=%d\n", respstat.Len)
 	resp.Order.Action = fmt.Sprintf("%s", myaction[0:actstat.Len])
 	resp.Order.Response = fmt.Sprintf("%s", myresponse[0:respstat.Len])
 	syslog.Syslogf(syslog.LOG_INFO, "DisConnecting from: %s", "192.168.1.240:30770")
-	ioedi.Disconnect(conn)
+	clientedi.Disconnect(conn)
 	xmlResponse(resp, resp.Order.Action, resp.Order.Response)
 
 }

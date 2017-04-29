@@ -139,7 +139,7 @@ func main() {
 }
 
 func run(myui ui) time.Time {
-	ui.redisplay(func(out io.Writer) {
+	myui.redisplay(func(out io.Writer) {
 		cmd := exec.Command(flag.Arg(0), flag.Args()[1:]...)
 		cmd.Stdout = out
 		cmd.Stderr = out

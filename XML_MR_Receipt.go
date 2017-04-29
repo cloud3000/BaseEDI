@@ -9,7 +9,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/smtp"
 	"os"
 	"path"
@@ -17,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloud3000/serveredi" // EDI Socket server lib
+	"github.com/cloud3000/ediserversocks" // serveredi EDI Socket server lib
 
 	"github.com/blackjack/syslog"
 )
@@ -466,8 +465,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	var locaddr net.Addr = conn.LocalAddr()
-	var remaddr net.Addr = conn.RemoteAddr()
+	var locaddr = conn.LocalAddr()
+	var remaddr = conn.RemoteAddr()
 	fmt.Printf("MR %v received request from %v\n", locaddr, remaddr)
 	syslog.Syslogf(syslog.LOG_INFO, "MR %v received request from %v", locaddr, remaddr)
 	var received int
